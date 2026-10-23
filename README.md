@@ -46,6 +46,27 @@ binaires dans [`apks/`](apks/).
 | LTvLauncher | GPL-3.0 | 21 | ✅ |
 | UnitedU | Apache-2.0 | 28 | ✅ installé |
 
+### Captures
+
+<table>
+<tr>
+<td align="center"><img src="docs/img/launchers/glass-home.png" width="330"><br><sub><b>GlassOS</b> — verre dépoli, grille à la demande</sub></td>
+<td align="center"><img src="docs/img/launchers/couchy-dock.png" width="330"><br><sub><b>Couchy</b> — dock flottant, trois dispositions</sub></td>
+</tr>
+<tr>
+<td align="center"><img src="docs/img/launchers/zheng-home.jpg" width="330"><br><sub><b>tv-launcher</b> — dock de quatre tuiles (Android 12+)</sub></td>
+<td align="center"><img src="docs/img/launchers/ltv-home.png" width="330"><br><sub><b>LTvLauncher</b> — catégories et widgets</sub></td>
+</tr>
+<tr>
+<td align="center"><img src="docs/img/launchers/unitedu-c06.png" width="330"><br><sub><b>UnitedU</b> — capture réelle de la C06, installé aujourd'hui</sub></td>
+<td align="center"><img src="docs/img/launchers/glass-control.png" width="330"><br><sub>GlassOS, centre de contrôle</sub></td>
+</tr>
+</table>
+
+D'autres captures (réglages, grille, sélection) sont dans
+[`docs/img/launchers/`](docs/img/launchers) et présentées dans
+[`docs/05-launchers.md`](docs/05-launchers.md).
+
 ## État final
 
 | | |
