@@ -40,7 +40,7 @@ sur un autre modèle, les paquets diffèrent, mais la démarche et les vérifica
 
 - **La télé « connectée » mais sans IP utilisable.** ARP muet, ping muet, ports fermés, mDNS
   muet. Une IP affichée n'est pas une preuve : elle peut venir d'un bail périmé.
-- **La passage en IP statique a rendu le LAN, puis cassé Internet.** Passerelle saisie en
+- **Le passage en IP statique a rendu le LAN, puis cassé Internet.** Passerelle saisie en
   `192.168.1.1` au lieu de `192.168.1.254` : ADB et Cast marchaient, aucune app ne lisait de
   vidéo.
 - **Le Wi-Fi se coupe en veille.** Les scripts d'installation attendent le retour de la télé
