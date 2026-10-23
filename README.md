@@ -32,6 +32,20 @@ pièges rencontrés.
 Ensuite, l'accueil par défaut est passé à **[UnitedU](https://github.com/GordonWang1878/UnitedU-launcher)**
 (open source, Apache-2.0), qui ressemble plus à ce qui était voulu. Voir [`docs/04-unitedu.md`](docs/04-unitedu.md).
 
+## Les cinq launchers comparés
+
+Quatre APK officiels prêts à installer et un projet qui refuse de s'installer sur Android 11, avec
+captures, licences et empreintes SHA-256 : [`docs/05-launchers.md`](docs/05-launchers.md),
+binaires dans [`apks/`](apks/).
+
+| Launcher | Licence | minSdk | Sur la C06 |
+|---|---|---|---|
+| GlassOS | GPL-3.0 | 22 | ✅ |
+| Couchy | GPL-3.0 | 21 | ✅ |
+| tv-launcher (zhengnanli) | MIT | 31 | ❌ Android 12+ |
+| LTvLauncher | GPL-3.0 | 21 | ✅ |
+| UnitedU | Apache-2.0 | 28 | ✅ installé |
+
 ## État final
 
 | | |
@@ -46,6 +60,7 @@ Ensuite, l'accueil par défaut est passé à **[UnitedU](https://github.com/Gord
 ## Arborescence
 
 ```
+apks/       les APK officiels des launchers comparés (non modifiés)
 debloat/    export de la liste, désactivation et retour arrière
 launcher/   source du launcher tvhome, ressources, build et scripts d'installation
 docs/       ce qui a été fait, et pourquoi
