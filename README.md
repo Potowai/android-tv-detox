@@ -1,61 +1,61 @@
-# Android TV — débloat, accueil et réseau
+# Android TV — debloat, home screen and network
 
-Une méthode reproductible pour nettoyer **n'importe quelle Android TV / Google TV**, lui donner un
-écran d'accueil minimal, et garder Chromecast qui fonctionne.
+**English** · [Français](README.fr.md)
 
-Pas de magie, pas d'APK miracle : des règles, des commandes `adb` vérifiables, et les pièges
-rencontrés en vrai. Le dossier a été écrit sur une TCL C06 (Android 11) et tout ce qui dépend du
-modèle est signalé comme tel.
+A repeatable way to clean up **any Android TV / Google TV**, give it a minimal home screen, and
+keep Chromecast working.
 
-## Ce qu'il y a ici
+No magic, no miracle APK: rules, verifiable `adb` commands, and the traps met in the field. The
+write-up started on a TCL C06 (Android 11); everything model-specific is flagged as such.
 
-| Dossier | Contenu |
+## What is in here
+
+| Folder | Contents |
 |---|---|
-| [`docs/01-debloat.md`](docs/01-debloat.md) | désactiver sans casser : catégories, `PERSISTENT`, listes de retour |
-| [`docs/02-launcher.md`](docs/02-launcher.md) | un accueil maison (source, build sans Gradle, installation) |
-| [`docs/03-network.md`](docs/03-network.md) | la TV injoignable, la passerelle au mauvais endroit, Chromecast |
-| [`docs/04-unitedu.md`](docs/04-unitedu.md) | prendre un launcher existant et le mettre en HOME |
-| [`docs/05-launchers.md`](docs/05-launchers.md) | cinq accueils open source comparés (licence, minSdk, ABI) |
-| [`docs/06-case-study.md`](docs/06-case-study.md) | le dossier complet sur une TCL C06, chiffres à l'appui |
-| [`apks/`](apks/) | les APK officiels des launchers comparés, avec SHA-256 |
-| [`debloat/`](debloat/) | scripts d'export, de désactivation et de retour arrière |
-| [`launcher/`](launcher/) | le launcher complet : Java, assets, build, installation |
-| [`PROMPT.md`](PROMPT.md) | le prompt à donner à un agent (OpenCode, Claude Code, Codex…) |
+| [`docs/01-debloat.md`](docs/01-debloat.md) | disable without breaking: categories, `PERSISTENT`, undo lists |
+| [`docs/02-launcher.md`](docs/02-launcher.md) | a home screen of your own (source, Gradle-free build, install) |
+| [`docs/03-network.md`](docs/03-network.md) | TV unreachable, wrong gateway, what Chromecast really needs |
+| [`docs/04-unitedu.md`](docs/04-unitedu.md) | take an existing launcher and make it the HOME app |
+| [`docs/05-launchers.md`](docs/05-launchers.md) | five open-source launchers compared (licence, minSdk, ABI) |
+| [`docs/06-case-study.md`](docs/06-case-study.md) | the full job on a TCL C06, with numbers |
+| [`apks/`](apks/) | the official APKs of the launchers compared, with SHA-256 |
+| [`debloat/`](debloat/) | scripts to export, disable, and undo |
+| [`launcher/`](launcher/) | the launcher: Java, assets, build, install scripts |
+| [`PROMPT.md`](PROMPT.md) | a prompt to hand to an agent (OpenCode, Claude Code, Codex…) |
 
-## Ça marche sur quoi
+## What it works on
 
-- **Android 9 (API 28) et plus** pour le rôle HOME moderne (`cmd role add-role-holder`) ;
-  `pm disable-user` fonctionne depuis bien plus longtemps.
-- **Google TV et Android TV** classiques. **Fire OS** est à part : les commandes `pm` passent,
-  mais l'accueil n'est pas remplaçable sans root.
-- Certaines ROM constructeur **refusent les launchers tiers** (TCL/FFALCON selon les modèles,
-  Xiaomi récents, Skyworth) : la méthode de débloat s'applique quand même, pas le remplacement
-  d'accueil.
-- Vérifier avant d'installer un APK : `minSdkVersion` et ABI (`aapt2 dump badging`). Beaucoup de
-  TV modestes sont **armeabi-v7a uniquement** — un APK arm64 ne s'installe pas.
+- **Android 9 (API 28) and later** for the modern HOME role (`cmd role add-role-holder`);
+  `pm disable-user` has been there for far longer.
+- **Google TV and plain Android TV.** **Fire OS** is a different story: `pm` commands work, but the
+  home screen cannot be replaced without root.
+- Some vendor ROMs **refuse third-party launchers** (TCL/FFALCON depending on the model, recent
+  Xiaomi, Skyworth): the debloat method still applies, the home replacement does not.
+- Before installing an APK, check `minSdkVersion` and the ABI (`aapt2 dump badging`). Plenty of
+  cheap TVs are **armeabi-v7a only** — an arm64 APK simply will not install.
 
-## La méthode en quatre étapes
+## The method in four steps
 
-1. **Découvrir et sauver** : modèle, SDK, RAM, apps installées, accueil actuel, port Cast 8009,
-   liste des paquets désactivés. Tout ce qui n'est pas noté ne pourra pas être annulé.
-2. **Désactiver par petites vagues**, jamais désinstaller, jamais toucher aux `PERSISTENT`, et
-   vérifier après chaque vague que Chromecast et l'accueil répondent encore.
-3. **Choisir un accueil** : celui du dépôt, ou un open source du comparatif ; le poser via le
-   rôle HOME et vérifier que la touche HOME y arrive vraiment.
-4. **Diagnostiquer le réseau** si la TV « a une IP mais ne répond pas » : ARP, route par défaut,
-   passerelle. Un affichage d'IP ne prouve rien.
+1. **Discover and save**: model, SDK, RAM, installed apps, current home app, Cast port 8009, list
+   of disabled packages. Anything not written down cannot be undone.
+2. **Disable in small waves**, never uninstall, never touch `PERSISTENT` packages, and after every
+   wave check that Chromecast and the home screen still answer.
+3. **Pick a home screen**: ours, or an open-source one from the comparison; install it through the
+   HOME role and verify that the HOME key really lands there.
+4. **Diagnose the network** when the TV "has an IP but does not answer": ARP, default route,
+   gateway. A displayed IP proves nothing.
 
-## Le dossier complet sur une TCL C06
+## The full job on a TCL C06
 
-47 paquets désactivés, 2 `PERSISTENT` suspendus, un launcher maison puis UnitedU en accueil, et
-deux pannes réseau élucidées — chiffres, commandes et captures dans
+47 packages disabled, 2 `PERSISTENT` ones suspended, a home-built launcher then UnitedU as the
+home app, and two network failures understood — numbers, commands and screenshots in
 [`docs/06-case-study.md`](docs/06-case-study.md).
 
-## Les cinq accueils comparés
+## The five launchers compared
 
-Quatre APK officiels prêts à installer et un projet qui refuse de s'installer sous Android 11,
-avec captures, licences et empreintes SHA-256 : [`docs/05-launchers.md`](docs/05-launchers.md),
-binaires dans [`apks/`](apks/).
+Four official APKs ready to install and one project that refuses to install on Android 11, with
+screenshots, licences and SHA-256 digests: [`docs/05-launchers.md`](docs/05-launchers.md),
+binaries in [`apks/`](apks/).
 
 | Launcher | Licence | minSdk | Android 11 |
 |---|---|---|---|
@@ -65,69 +65,69 @@ binaires dans [`apks/`](apks/).
 | LTvLauncher | GPL-3.0 | 21 | ✅ |
 | UnitedU | Apache-2.0 | 28 | ✅ |
 
-### Captures
+### Screenshots
 
 <table>
 <tr>
-<td align="center"><img src="docs/img/launchers/glass-home.png" width="330"><br><sub><b>GlassOS</b> — verre dépoli, grille à la demande</sub></td>
-<td align="center"><img src="docs/img/launchers/couchy-dock.png" width="330"><br><sub><b>Couchy</b> — dock flottant, trois dispositions</sub></td>
+<td align="center"><img src="docs/img/launchers/glass-home.png" width="330"><br><sub><b>GlassOS</b> — frosted glass, app grid on demand</sub></td>
+<td align="center"><img src="docs/img/launchers/couchy-dock.png" width="330"><br><sub><b>Couchy</b> — floating dock, three layouts</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="docs/img/launchers/zheng-home.jpg" width="330"><br><sub><b>tv-launcher</b> — dock de quatre tuiles (Android 12+)</sub></td>
-<td align="center"><img src="docs/img/launchers/ltv-home.png" width="330"><br><sub><b>LTvLauncher</b> — catégories et widgets</sub></td>
+<td align="center"><img src="docs/img/launchers/zheng-home.jpg" width="330"><br><sub><b>tv-launcher</b> — four-tile dock (Android 12+)</sub></td>
+<td align="center"><img src="docs/img/launchers/ltv-home.png" width="330"><br><sub><b>LTvLauncher</b> — categories and widgets</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="docs/img/launchers/unitedu-real.png" width="330"><br><sub><b>UnitedU</b> — capture réelle sur la TV de test</sub></td>
-<td align="center"><img src="docs/img/launchers/glass-control.png" width="330"><br><sub>GlassOS, centre de contrôle</sub></td>
+<td align="center"><img src="docs/img/launchers/unitedu-real.png" width="330"><br><sub><b>UnitedU</b> — real capture on the test TV</sub></td>
+<td align="center"><img src="docs/img/launchers/glass-control.png" width="330"><br><sub>GlassOS, control centre</sub></td>
 </tr>
 </table>
 
-## Arborescence
+## Tree
 
 ```
-apks/       les APK officiels des launchers comparés (non modifiés)
-debloat/    export de la liste, désactivation et retour arrière
-launcher/   source du launcher tvhome, ressources, build et scripts d'installation
-docs/       ce qui a été fait, et pourquoi
+apks/       the official APKs of the launchers compared (unmodified)
+debloat/    export the package list, disable, undo
+launcher/   tvhome source, assets, build and install scripts
+docs/       what was done, and why (docs/fr/ holds the French originals)
 ```
 
-## Démarrage rapide
+## Quick start
 
 ```powershell
-# 1. Sauver l'état actuel de la télé
-powershell -ExecutionPolicy Bypass -File debloat\export.ps1 -Ip <IP_DE_LA_TV>
+# 1. Save the TV's current state
+powershell -ExecutionPolicy Bypass -File debloat\export.ps1 -Ip <TV_IP>
 
-# 2. Construire le launcher (JDK 21 + build-tools 36.1 + android-34)
+# 2. Build the launcher (JDK 21 + build-tools 36.1 + android-34)
 powershell -ExecutionPolicy Bypass -File launcher\build.ps1
 
-# 3. L'installer et en faire l'accueil par défaut
-powershell -ExecutionPolicy Bypass -File launcher\install-tvhome.ps1 -Ip <IP_DE_LA_TV>
+# 3. Install it and make it the default home app
+powershell -ExecutionPolicy Bypass -File launcher\install-tvhome.ps1 -Ip <TV_IP>
 ```
 
-Tous les scripts prennent `-Ip` ; aucune adresse d'un réseau réel n'est dans ce dépôt.
+Every script takes `-Ip`; no real network address is committed here.
 
-## Règles de sécurité appliquées
+## Safety rules applied
 
-- **Désactiver, jamais désinstaller.** `pm disable-user` se défait avec `pm enable` ; une
-  désinstallation d'app système ne se défait pas sans l'APK d'origine.
-- **Jamais toucher aux paquets `PERSISTENT`** (ils se relancent au boot et une désactivation
-  laisse la télé dans un état bizarre). Les deux concernés ont été *suspendus*, pas désactivés,
-  et le flag ne survit pas à un redémarrage — c'est volontaire.
-- **Garder une liste de retour** avant toute action, et la relire après un reboot.
-- **Vérifier Chromecast après chaque vague** : port `8009` en écoute, `mediashell` et `gms` vivants.
+- **Disable, never uninstall.** `pm disable-user` is undone by `pm enable`; uninstalling a system
+  app cannot be undone without its original APK.
+- **Never touch `PERSISTENT` packages** (they restart at boot and disabling them leaves the TV in
+  a strange state). The two involved were *suspended* instead, and the flag does not survive a
+  reboot — on purpose.
+- **Keep an undo list** before any action, and read it back after a reboot.
+- **Check Chromecast after every wave**: port `8009` listening, `mediashell` and `gms` alive.
 
-## Refaites-le avec une IA
+## Redo it with an AI agent
 
-[`PROMPT.md`](PROMPT.md) contient le prompt à coller dans OpenCode, Claude Code, Codex ou
-n'importe quel agent avec accès au shell : découverte de la TV, liste de paquets proposée puis
-validée, désactivation par lots avec vérification de Chromecast, installation de l'accueil, et
-compte rendu avant/après. Rien n'est destructif sans accord, rien n'est affirmé sans commande.
+[`PROMPT.md`](PROMPT.md) holds the prompt to paste into OpenCode, Claude Code, Codex or any agent
+with shell access: discover the TV, propose a package list and get it approved, disable in waves
+with Chromecast checks, install the home screen, then report before/after. Nothing destructive
+without consent, nothing claimed without a command.
 
-## Crédits
+## Credits
 
-- Launcher d'origine : [Ansub/tv-detox](https://github.com/Ansub/tv-detox), MIT.
-  Notre fork avec l'APK : [Potowai/tv-detox](https://github.com/Potowai/tv-detox/releases/latest).
-- UnitedU : [GordonWang1878/UnitedU-launcher](https://github.com/GordonWang1878/UnitedU-launcher), Apache-2.0.
-- GlassOS, Couchy, LTvLauncher, tv-launcher : voir [`apks/README.md`](apks/README.md).
-- Fond d'écran : « Nautical twilight sunset over Sandy Lake » par **Trougnouf**, CC BY 4.0,
+- Original launcher: [Ansub/tv-detox](https://github.com/Ansub/tv-detox), MIT.
+  Our fork with the APK: [Potowai/tv-detox](https://github.com/Potowai/tv-detox/releases/latest).
+- UnitedU: [GordonWang1878/UnitedU-launcher](https://github.com/GordonWang1878/UnitedU-launcher), Apache-2.0.
+- GlassOS, Couchy, LTvLauncher, tv-launcher: see [`apks/README.md`](apks/README.md).
+- Wallpaper: "Nautical twilight sunset over Sandy Lake" by **Trougnouf**, CC BY 4.0,
   [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Nautical_twilight_sunset_over_Sandy_Lake_(DSCF3005).jpg).

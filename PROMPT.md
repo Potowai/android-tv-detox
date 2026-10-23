@@ -1,122 +1,118 @@
-# Un prompt pour ton agent
+# A prompt for your agent
 
-Le même travail, refait sur une autre TV par un agent (OpenCode, Claude Code, Codex, Cursor…)
-qui a accès au shell et à `adb`.
+**English** · [Français](PROMPT.fr.md)
 
-**Mode d'emploi** : donne-lui le bloc ci-dessous tel quel, en remplaçant `<IP_DE_LA_TV>` et
-`<MODÈLE>`. L'agent lit ce dépôt, propose une liste de paquets, la fait valider, puis exécute.
-Rien n'est destructif sans accord.
+The same job, redone on another TV by an agent (OpenCode, Claude Code, Codex, Cursor…) with shell
+and `adb` access.
 
-*English: copy the block below into your agent, replace the two placeholders, and it will follow
-this repository's method on your TV. The prompt is in French; any coding agent handles it.*
+**How to use it**: paste the block below, replacing `<TV_IP>` and `<MODEL>`. The agent reads this
+repository, proposes a package list, gets it approved, then executes. Nothing destructive without
+consent.
 
 ---
 
-## Le prompt
+## The prompt
 
 ```text
-Tu es ingénieur Android TV. Tu travailles sur une vraie TV, par ADB, depuis le PC de
-l'utilisateur. Ta référence est le dépôt https://github.com/Potowai/android-tv-detox : lis le README
-et les fichiers de docs/ avant de commencer. Tu refais le même travail sur ma TV
-<MODÈLE>, à l'adresse <IP_DE_LA_TV>, port 5555.
+You are an Android TV engineer. You work on a real TV, over ADB, from the user's PC. Your reference
+is the repository https://github.com/Potowai/android-tv-detox : read the README and the files under
+docs/ before starting. You are doing the same work on my TV <MODEL>, at <TV_IP>, port 5555.
 
-OBJECTIF
-Une télé qui ne garde que ce qui sert : les applis de streaming de la maison, Chromecast, et un
-écran d'accueil calme sans recommandations ni publicité. Ne rien casser, ne rien perdre.
+GOAL
+A TV that keeps only what it is used for: the household's streaming apps, Chromecast, and a calm
+home screen with no recommendations or ads. Break nothing, lose nothing.
 
-RÈGLES ABSOLUES
-1. Désactiver, jamais désinstaller. `pm disable-user --user 0` s'annule avec `pm enable` ;
-   `pm uninstall` d'une app système ne s'annule pas.
-2. Avant toute modification, écris une liste de retour lisible : les paquets désactivés, et
-   l'accueil par défaut actuel, dans un fichier local ET sur la TV (/data/local/tmp/).
-3. Ne touche jamais aux paquets marqués PERSISTENT : ils se relancent au boot et une
-   désactivation laisse le système incohérent. Si l'un gêne, `pm suspend` seulement.
-4. Ne désactive jamais, sans raison explicite et sans proposition de remplacement :
-   com.google.android.gms, com.google.android.apps.mediashell, le TV Input Framework
-   (com.android.tv*, com.google.android.tv.inputplayer), le clavier, com.android.settings,
-   le launcher actuellement par défaut, ni Play Store si l'utilisateur s'en sert.
-5. Chromecast doit continuer à marcher. Après chaque vague : port 8009 en écoute,
-   `mediashell` et `gms` vivants, et l'utilisateur confirme que le téléphone voit la TV.
-6. Une action destructive (redémarrage, désinstallation, changement d'accueil par défaut)
-   demande mon accord d'abord. Explique en une phrase ce que ça change.
-7. Journalise chaque commande et son résultat. Si une commande échoue, dis-le, ne contourne pas
-   en silence.
+HARD RULES
+1. Disable, never uninstall. `pm disable-user --user 0` is undone by `pm enable`; uninstalling a
+   system app cannot be undone.
+2. Before any change, write a readable undo list: disabled packages and the current default home
+   app, both locally and on the TV (/data/local/tmp/).
+3. Never touch packages flagged PERSISTENT: they restart at boot and disabling them leaves the
+   system inconsistent. If one is a problem, `pm suspend` it only.
+4. Never disable, without an explicit reason and a replacement proposal: com.google.android.gms,
+   com.google.android.apps.mediashell, the TV Input Framework (com.android.tv*,
+   com.google.android.tv.inputplayer), the keyboard, com.android.settings, the launcher currently
+   in use, or the Play Store if the user relies on it.
+5. Chromecast must keep working. After each wave: port 8009 listening, mediashell and gms alive,
+   and the user confirms the phone can see the TV.
+6. A destructive action (reboot, uninstall, changing the default home app) needs my approval first.
+   Explain in one sentence what it changes.
+7. Log every command and its result. If a command fails, say so; never work around it silently.
 
-ÉTAPE 0 — DÉCOUVRIR (lecture seule)
-  adb connect <IP_DE_LA_TV>:5555 ; adb devices
+STEP 0 — DISCOVER (read-only)
+  adb connect <TV_IP>:5555 ; adb devices
   adb shell getprop ro.product.model / ro.build.version.sdk
   adb shell wm size ; adb shell free -m
   adb shell pm list packages -3 -e
   adb shell cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME
   adb shell netstat -ltn | grep 8009
   adb shell ps -A | grep -E 'mediashell|gms'
-Donne-moi un résumé : modèle, version d'Android, définition, RAM libre, apps tierces, accueil
-actuel, état de Chromecast.
+Give me a summary: model, Android version, resolution, free RAM, third-party apps, current home
+app, Chromecast state.
 
-ÉTAPE 1 — SAUVEGARDER
+STEP 1 — SAVE
   adb shell pm list packages -d   -> /data/local/tmp/disabled-<date>.txt
   adb shell pm list packages -e   -> /data/local/tmp/enabled-<date>.txt
-  adb pull des deux fichiers
-  Pour chaque paquet candidat : adb shell dumpsys package <pkg> | grep -E 'flags=|pkgFlags='
-  -> repère les PERSISTENT, exclus-les de la liste.
+  adb pull both files
+  For each candidate: adb shell dumpsys package <pkg> | grep -E 'flags=|pkgFlags='
+  -> spot the PERSISTENT ones and leave them out of the list.
 
-ÉTAPE 2 — PROPOSER, PUIS DÉSACTIVER
-Dresse un tableau des paquets candidats : nom, ce qu'il fait, risque, conséquence si désactivé.
-Attends mon OK. Puis désactive par lots de 5 à 10, et après chaque lot :
-  adb shell pm list packages -d        (comparer au compte attendu)
+STEP 2 — PROPOSE, THEN DISABLE
+Build a table of candidate packages: name, what it does, risk, consequence if disabled. Wait for my
+OK. Then disable in batches of 5 to 10, and after each batch:
+  adb shell pm list packages -d        (compare with the expected count)
   adb shell netstat -ltn | grep 8009
   adb shell ps -A | grep -E 'mediashell|gms'
-  adb shell dumpsys package <pkg> | grep -c 'enabled=true'   (contrôle ponctuel)
-Si Chromecast ou un service vital tombe : `pm enable` sur le lot, et signale-le.
+  adb shell dumpsys package <pkg> | grep -c 'enabled=true'   (spot check)
+If Chromecast or a vital service falls over: `pm enable` the batch and report it.
 
-ÉTAPE 3 — L'ACCUEIL
-Deux options, choisis avec moi :
- a) le launcher de ce dépôt (trois cartes, barre unique, fond photo) : `launcher/` contient le
-    source, `build.ps1` (Windows) ou `build.sh` (macOS/Linux), et les scripts d'installation ;
- b) un launcher open source existant : vérifie `aapt2 dump badging` — minSdk <= version
-    d'Android de la TV, et une ABI compatible (beaucoup de TV modestes sont armeabi-v7a seules).
-Puis :
+STEP 3 — THE HOME SCREEN
+Two options, pick with me:
+ a) the launcher in this repository (three cards, single bar, photo backdrop): `launcher/` holds the
+    source, `build.ps1` (Windows) or `build.sh` (macOS/Linux), and the install scripts;
+ b) an existing open-source launcher: check `aapt2 dump badging` — minSdk <= the TV's Android
+    version, and a compatible ABI (many cheap TVs are armeabi-v7a only).
+Then:
   adb shell cmd package set-home-activity --user 0 <pkg>/.<Activity>
   adb shell cmd role add-role-holder --user 0 android.app.role.HOME <pkg>
   adb shell cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME
-  adb shell input keyevent 3      (vérifier que HOME y arrive vraiment)
+  adb shell input keyevent 3      (verify HOME really lands there)
 
-ÉTAPE 4 — SI LA TV EST INJOIGNABLE
-Ne conclus pas « le Wi-Fi est cassé ». Mesure, dans cet ordre :
+STEP 4 — IF THE TV IS UNREACHABLE
+Do not conclude "the Wi-Fi is broken". Measure, in this order:
   ping <IP> ; arp -a | grep <MAC>
-  scan des ports 5555 / 8009 / 6466 sur le /24
-  mDNS (_googlecast._tcp) et SSDP
+  scan ports 5555 / 8009 / 6466 across the /24
+  mDNS (_googlecast._tcp) and SSDP
   adb shell ip route ; adb shell dumpsys connectivity | grep -o '0\.0\.0\.0/0 -> [0-9.]*'
-Un appareil qui affiche une IP mais ne répond pas à ARP n'est pas sur le LAN.
-Une route par défaut qui pointe ailleurs que la box (192.168.1.1 au lieu de 192.168.1.254)
-laisse le LAN fonctionner et coupe tout Internet — c'est un champ « passerelle » faux.
+A device that shows an IP but does not answer ARP is not on the LAN.
+A default route pointing somewhere other than the router (192.168.1.1 instead of 192.168.1.254)
+keeps the LAN working and kills the internet — a wrong "gateway" field.
 
-ÉTAPE 5 — VÉRIFIER
-Redémarre la TV, puis :
-  liste des paquets désactivés identique
-  HOME -> l'accueil voulu
-  port 8009 en écoute, mediashell + gms vivants
-  free -m (RAM libérée)
-  une app de streaming se lance et lit une vidéo
-  Chromecast depuis le téléphone
+STEP 5 — VERIFY
+Reboot the TV, then:
+  the disabled package list is identical
+  HOME -> the wanted launcher
+  port 8009 listening, mediashell + gms alive
+  free -m (RAM freed)
+  a streaming app starts and plays a video
+  Chromecast from the phone
 
-ÉTAPE 6 — RENDRE COMPTE
-Un tableau avant/après : paquets désactivés, RAM libre, accueil, état de Chromecast. La liste
-exacte des paquets touchés, et la commande pour tout annuler. Aucune affirmation que tu n'as pas
-vérifiée par une commande : cite la commande et sa sortie.
+STEP 6 — REPORT
+A before/after table: disabled packages, free RAM, home app, Chromecast state. The exact list of
+packages touched, and the command to undo everything. No claim you did not verify with a command:
+quote the command and its output.
 ```
 
-## Notes par agent
+## Per-agent notes
 
-| Agent | Astuce |
+| Agent | Tip |
 |---|---|
-| OpenCode | ouvre le dépôt dans le dossier de travail, il lira `README.md` et `docs/` seul |
-| Claude Code | `claude "suis PROMPT.md de ce dépôt pour ma TV <IP>"` |
-| Codex / CLI | même chose : le prompt pointe vers le dépôt, pas besoin de coller les docs |
-| Sans accès shell | l'agent ne peut pas piloter la TV ; il peut seulement préparer les commandes à coller |
+| OpenCode | open the repository as the working directory, it will read `README.md` and `docs/` |
+| Claude Code | `claude "follow PROMPT.md from this repo for my TV <IP>"` |
+| Codex / CLI | same: the prompt points at the repo, no need to paste the docs |
+| No shell access | the agent cannot drive the TV; it can only prepare commands for you to paste |
 
-## Ce que ce prompt ne fait pas
+## What this prompt does not do
 
-Il ne devine pas ta liste d'apps : l'étape 2 propose, tu valides. Il ne désinstalle rien. Et il
-n'invente pas de résultat : chaque affirmation du compte rendu doit venir d'une commande passée
-sur la TV.
+It does not guess your app list: step 2 proposes, you approve. It uninstalls nothing. And it
+invents no results: every claim in the report must come from a command run on the TV.

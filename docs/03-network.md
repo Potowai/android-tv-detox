@@ -1,61 +1,63 @@
-# 3. Réseau : la TV a une IP mais ne répond pas
+# 3. Network: the TV has an IP but does not answer
 
-Deux problèmes différents se sont succédé. Ils se ressemblent — « la télé a une IP mais on ne
-l'atteint pas » — mais n'ont pas la même cause.
+**English** · [Français](fr/03-network.md)
 
-## Épisode 1 : associée au Wi-Fi, injoignable sur le LAN
+Two different failures looked alike: "the TV shows an IP, but nothing reaches it". They do not
+have the same cause, so diagnose them in this order.
 
-Symptômes, mesurés depuis le PC :
+## Episode 1: joined to Wi-Fi, unreachable on the LAN
 
-| Test | Résultat |
+Measured from the PC:
+
+| Test | Result |
 |---|---|
-| Ping `192.168.1.20` (l'IP affichée par la télé) | aucune réponse |
-| ARP pour la MAC `<MAC de la TV>` | aucune entrée |
-| TCP `5555`, `8009`, `6466` sur les 254 adresses | seulement le Fire Stick |
+| Ping `192.168.1.20` (the IP the TV displayed) | no answer |
+| ARP for the TV's MAC | no entry |
+| TCP `5555`, `8009`, `6466` across all 254 addresses | only the Fire Stick |
 | mDNS (`_googlecast`, `_androidtvremote2`) | silence |
 | SSDP `M-SEARCH` | silence |
 
-La télé affichait pourtant « Connecté, signal excellent » et une IP. Mais son adresse n'existait
-nulle part sur le réseau : le bail était un souvenir, pas une route. Chromecast ne pouvait donc
-pas fonctionner non plus (il est LAN-only).
+The TV still showed "Connected, excellent signal" and an IP. But its address existed nowhere on
+the network: the lease was a memory, not a route. Chromecast could not work either (it is LAN
+only).
 
-La sortie a été de fixer une **IP statique** sur la télé, ce qui a immédiatement rendu ADB et
-Cast de nouveau joignables.
+The way out was a **static IP** on the TV, which immediately made ADB and Cast reachable again.
+If you have to do the same, write down the address: everything after that depends on it.
 
-## Épisode 2 : « Internet est cassé » dans les apps
+## Episode 2: "the internet is broken" in every app
 
-Une fois l'IP statique posée, ADB et Cast marchaient, mais aucune app ne lisait de vidéo.
-La cause était visible en deux commandes :
+With the static IP in place, ADB and Cast worked, but no app could play anything. Two commands
+were enough to see why:
 
 ```bash
 adb shell ip route
-# 192.168.1.0/24 dev wlan0 …          <- pas de route par défaut, ou une mauvaise
+# 192.168.1.0/24 dev wlan0 …          <- no default route, or a wrong one
 
 adb shell dumpsys connectivity | grep -o '0\.0\.0\.0/0 -> [0-9.]*'
-# 0.0.0.0/0 -> 192.168.1.1            <- la Freebox est 192.168.1.254
+# 0.0.0.0/0 -> 192.168.1.1            <- the router is 192.168.1.254
 ```
 
-Le champ **Passerelle** de la configuration statique avait été saisi à `192.168.1.1`
-(la valeur par défaut de beaucoup de routeurs) au lieu de `192.168.1.254`. Résultat : la télé
-atteignait la box et le LAN — donc ADB, Cast, la découverte locale — mais tout paquet destiné à
-Internet partait vers une adresse inexistante.
+The **gateway** field of the static configuration had been filled with `192.168.1.1` (the default
+of many routers) instead of `192.168.1.254`. The TV could reach the router and the LAN — hence
+ADB, Cast and local discovery — but every packet bound for the internet went to a non-existent
+address.
 
-Les DNS, eux, étaient corrects (`8.8.8.8`, `8.8.4.4`, plus le résolveur IPv6 de la Freebox) :
-ce n'était pas un problème de résolution, mais bien de routage.
+DNS was fine (`8.8.8.8`, `8.8.4.4`, plus the router's IPv6 resolver): this was routing, not
+resolution.
 
-### Correction
+### Fix
 
-Sur la télé : **Paramètres → Réseau et Internet → [SSID] → Paramètres IP → Statique**
+On the TV: **Settings → Network & Internet → [SSID] → IP settings → Static**
 
-| Champ | Valeur |
+| Field | Value |
 |---|---|
-| Adresse IP | `192.168.1.50` |
-| Masque | `255.255.255.0` |
-| **Passerelle** | **`192.168.1.254`** |
-| DNS 1 | `192.168.1.254` (ou `1.1.1.1`) |
-| DNS 2 | `8.8.4.4` (facultatif) |
+| IP address | your reserved address |
+| Subnet mask | `255.255.255.0` |
+| **Gateway** | **`192.168.1.254`** (your router) |
+| DNS 1 | `192.168.1.254`, or `1.1.1.1` |
+| DNS 2 | `8.8.4.4` (optional) |
 
-Vérification :
+Verify:
 
 ```bash
 adb shell ip route | grep default        # default via 192.168.1.254 dev wlan0
@@ -63,13 +65,13 @@ adb shell ping -c 2 1.1.1.1             # 0% packet loss
 adb shell ping -c 2 google.com          # 0% packet loss
 ```
 
-## Ce qu'il faut retenir
+## What to remember
 
-- **Une IP affichée ne prouve rien.** Croiser ARP + ping + ports + mDNS : si l'ARP ne répond pas,
-  l'appareil n'est pas sur ce segment, quel que soit ce qu'affiche son écran.
-- **Cast ne dépend pas d'Internet** : il vit sur le LAN. Un Cast qui marche avec des apps qui ne
-  lisent rien, c'est un routage cassé, pas un problème de compte ou de DRM.
-- Un champ **Passerelle** faux est le piège classique d'une IP statique : les apps locales
-  continuent de fonctionner, tout le reste meurt silencieusement.
-- Sur cette télé, le Wi-Fi **tombe en veille** et l'ADB se déconnecte : les scripts de ce dépôt
-  attendent le retour de la télé (`watch-tv.ps1`, `push-when-awake.ps1`) au lieu d'échouer.
+- **A displayed IP proves nothing.** Cross-check ARP + ping + ports + mDNS: if ARP does not
+  answer, the device is not on that segment, whatever its screen says.
+- **Cast does not need the internet**: it lives on the LAN. Cast working while apps cannot play
+  anything means broken routing, not an account or DRM problem.
+- A wrong **gateway** is the classic static-IP trap: local apps keep working, everything else dies
+  silently.
+- On the test TV the Wi-Fi **drops in standby** and ADB disconnects: the scripts here wait for the
+  TV to come back (`watch-tv.ps1`, `push-when-awake.ps1`) instead of failing.

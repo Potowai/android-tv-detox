@@ -1,60 +1,61 @@
-# 6. Dossier complet : une TCL C06
+# 6. Case study: one TCL C06
 
-Les chiffres et les faits d'une TV nettoyée de bout en bout. C'est un exemple, pas une recette :
-sur un autre modèle, les paquets diffèrent, mais la démarche et les vérifications sont les mêmes.
+**English** · [Français](fr/06-case-study.md)
 
-## La télé
+Numbers and facts from a TV cleaned end to end. It is an example, not a recipe: on another model the
+packages differ, but the process and the checks do not.
 
-| | |
-|---|---|
-| Modèle | TCL C06 (Google TV, Android 11 / API 30) |
-| Écran | 1280 × 720, interface en français |
-| RAM | 939 Mo (917 Mo visibles) |
-| CPU | armeabi-v7a uniquement (pas d'arm64) |
-| Réseau | Wi-Fi 2,4 GHz, ADB sur le port 5555 |
-
-## Résultat
+## The TV
 
 | | |
 |---|---|
-| Accueil par défaut | `com.uniteduone.launcher/.MainActivity` (UnitedU 1.2.0) |
-| Ancien accueil | `com.ansub.tvhome` toujours installé, inactif (retour possible en une commande) |
-| Apps désactivées | 47 |
-| Apps PERSISTENT suspendues | 2 (`com.tcl.factory.view`, `com.tcl.system.server`) |
-| Chromecast | `8009` en écoute, `mediashell` + `gms` actifs |
-| RAM libre après nettoyage | ~356 Mo au premier reboot, ~50 Mo une fois UnitedU chargé |
-| APK qui traînaient | 0 (stockage nettoyé) |
+| Model | TCL C06 (Google TV, Android 11 / API 30) |
+| Display | 1280 × 720, French UI |
+| RAM | 939 MB (917 MB visible) |
+| CPU | armeabi-v7a only (no arm64) |
+| Network | 2.4 GHz Wi-Fi, ADB on port 5555 |
 
-## Ordre des opérations
+## Result
 
-1. **Débloat**, par vagues de 7 à 10 paquets, avec `pm list packages -d` et le port 8009 vérifiés
-   après chaque vague. Les deux `PERSISTENT` n'ont été que suspendus.
-2. **Launcher maison** (`com.ansub.tvhome`, fork de tv-detox) : trois cartes, barre unique, fond
-   photo — Voir [`02-launcher.md`](02-launcher.md).
-3. **Bascule vers UnitedU**, plus proche de l'interface voulue, avec les trois apps de la maison
-   dans la première rangée : voir [`04-unitedu.md`](04-unitedu.md).
-4. **Réseau** : la télé perdue sur le LAN puis la passerelle statique fausse — voir
+| | |
+|---|---|
+| Default home app | `com.uniteduone.launcher/.MainActivity` (UnitedU 1.2.0) |
+| Previous home app | `com.ansub.tvhome` still installed, inactive (switch back in one command) |
+| Disabled packages | 47 |
+| Suspended PERSISTENT packages | 2 (`com.tcl.factory.view`, `com.tcl.system.server`) |
+| Chromecast | `8009` listening, `mediashell` + `gms` running |
+| Free RAM after cleanup | ~356 MB at the first reboot, ~50 MB once UnitedU is loaded |
+| Leftover APKs | 0 (storage cleaned) |
+
+## Order of operations
+
+1. **Debloat**, in waves of 7 to 10 packages, checking `pm list packages -d` and port 8009 after
+   each wave. The two `PERSISTENT` packages were only suspended.
+2. **Home-built launcher** (`com.ansub.tvhome`, a tv-detox fork): three cards, a single bar, a photo
+   backdrop — see [`02-launcher.md`](02-launcher.md).
+3. **Switch to UnitedU**, closer to the wanted interface, with the household's three apps on the
+   first row: see [`04-unitedu.md`](04-unitedu.md).
+4. **Network**: the TV lost on the LAN, then the wrong static gateway — see
    [`03-network.md`](03-network.md).
 
-## Ce qui a posé problème, et pourquoi
+## What went wrong, and why
 
-- **La télé « connectée » mais sans IP utilisable.** ARP muet, ping muet, ports fermés, mDNS
-  muet. Une IP affichée n'est pas une preuve : elle peut venir d'un bail périmé.
-- **Le passage en IP statique a rendu le LAN, puis cassé Internet.** Passerelle saisie en
-  `192.168.1.1` au lieu de `192.168.1.254` : ADB et Cast marchaient, aucune app ne lisait de
-  vidéo.
-- **Le Wi-Fi se coupe en veille.** Les scripts d'installation attendent le retour de la télé
-  (`watch-tv.ps1`, `push-when-awake.ps1`) au lieu d'échouer.
-- **La clé de signature.** Une build signée autrement ne s'installe pas par-dessus : il faut
-  désinstaller, ce qui efface les préférences du launcher (dont la rangée).
+- **"Connected" but no usable IP.** ARP silent, ping silent, ports closed, mDNS silent. A displayed
+  IP is not proof: it can come from a stale lease.
+- **The move to a static IP fixed the LAN, then broke the internet.** Gateway typed as
+  `192.168.1.1` instead of `192.168.1.254`: ADB and Cast worked, no app could play a video.
+- **Wi-Fi drops in standby.** The install scripts wait for the TV to come back
+  (`watch-tv.ps1`, `push-when-awake.ps1`) instead of failing.
+- **The signing key.** A build signed with another key cannot install over the old one: it has to
+  be uninstalled first, which wipes the launcher's preferences (including the saved row).
 
-## Retour arrière complet
+## Full rollback
 
 ```bash
-# l'accueil d'origine
+# the stock home app
 adb shell cmd package set-home-activity --user 0 com.tcl.tvlauncher/.MainActivity
 
-# les paquets
+# the packages
 adb shell pm list packages -d | sed 's/package://' | xargs -n1 adb shell pm enable
 adb shell pm unsuspend --user 0 com.tcl.factory.view
 adb shell pm unsuspend --user 0 com.tcl.system.server

@@ -1,90 +1,96 @@
-# 2. Un écran d'accueil maison (tvhome)
+# 2. A home screen of your own (tvhome)
 
-`com.ansub.tvhome` est un launcher Android TV minimal, dérivé de
-[Ansub/tv-detox](https://github.com/Ansub/tv-detox) (MIT). Le code d'origine affichait six apps
-par ligne avec leurs bannières ; la version de ce dépôt en fait un écran calme : trois cartes,
-une barre unique en bas, un fond photo.
+**English** · [Français](fr/02-launcher.md)
 
-## Ce que fait l'écran
+`com.ansub.tvhome` is a minimal Android TV launcher derived from
+[Ansub/tv-detox](https://github.com/Ansub/tv-detox) (MIT). The original showed six apps per row
+with their banners; this version turns it into a calm screen: three cards, a single bottom bar,
+a photo backdrop.
 
-- **Trois cartes par ligne** (464 × 220 en 1920 × 1080), icône réelle de l'app à gauche, nom à droite.
-  L'icône vient de `PackageManager.getApplicationIcon()` — aucune bannière, aucun visuel dessiné.
-- **Focus** : bordure 2 px `#72A7FF`, halo bleu derrière la carte, échelle 1.025, 160 ms.
-- **Barre du bas** : une seule pilule avec Accueil (souligné), HDMI 1, HDMI 2, Play Store,
-  Paramètres, Ajouter une app, séparateurs fins. Elle ne défile pas avec les apps.
-- **En-tête** : date en toutes lettres (24 px), horloge 68 px en light, Wi-Fi et engrenage à droite.
-- **Fond** : photo embarquée dans `assets/`, assombrie, plus un voile marine qui s'épaissit vers le bas.
-- **Rangée qui se met à jour** : quand une app est installée après l'enregistrement de la rangée,
-  elle rejoint l'accueil (comparaison sur `PackageInfo.firstInstallTime`). Une rangée enregistrée
-  ne bouge pas autrement.
+It targets cheap hardware: `minSdk 21`, no image resources, no Gradle, a 1 GB TV runs it.
 
-## Géométrie (espace de conception 1920 × 1080)
+## What the screen does
 
-| Élément | Valeur |
+- **Three cards per row** (464 × 220 at 1920 × 1080), the app's real icon on the left, its name on
+  the right. The icon comes from `PackageManager.getApplicationIcon()` — no banners, nothing
+  hand-drawn.
+- **Focus**: 2 px `#72A7FF` border, blue halo behind the card, scale 1.025, 160 ms.
+- **Bottom bar**: one pill with Home (underlined), HDMI 1, HDMI 2, Play Store, Settings, Add app,
+  thin separators. It does not scroll with the apps.
+- **Header**: date in full (24 px), 68 px light clock, Wi-Fi and a gear on the right.
+- **Backdrop**: a photo bundled in `assets/`, darkened, plus a navy veil that thickens towards the
+  bottom. If the asset fails to decode, a gradient takes over — never a black screen.
+- **Self-updating row**: an app installed after the row was saved joins it on its own (compared on
+  `PackageInfo.firstInstallTime`). A saved row does not move otherwise.
+
+## Geometry (1920 × 1080 design space)
+
+| Element | Value |
 |---|---|
-| Marge | 92 px |
-| Carte | 464 × 220, rayon 22, écart 18 |
-| Grille | titre à 370, cartes à 420 |
-| Barre | hauteur 92, à 48 du bas, rayon 46 |
-| Icônes d'en-tête | 30 px, à 84 du bord droit |
+| Margin | 92 px |
+| Card | 464 × 220, radius 22, gap 18 |
+| Grid | heading at 370, cards at 420 |
+| Bar | 92 px high, 48 from the bottom, radius 46 |
+| Header icons | 30 px, 84 from the right edge |
 
-Tout passe par `px(v) = round(v × largeurÉcran / 1920)`, donc la mise en page tient sur du 720p
-comme sur du 1080p.
+Everything goes through `px(v) = round(v × screenWidth / 1920)`, so the layout holds on 720p as
+well as 1080p.
 
-## Construire l'APK sous Windows (sans Gradle)
+## Building the APK on Windows (no Gradle)
 
-Le projet n'a ni Gradle ni ressources Android : un manifeste, trois fichiers Java, des assets.
-La chaîne est donc directe : `aapt2` → `javac` → `d8` → injection du dex → `zipalign` → `apksigner`.
+The project has no Gradle and no Android resources: one manifest, three Java files, some assets.
+The chain is direct: `aapt2` → `javac` → `d8` → dex injection → `zipalign` → `apksigner`.
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File launcher\build.ps1
 # -> launcher\out\tvhome.apk
 ```
 
-Variables attendues : `ANDROID_SDK` (build-tools 36.1 + platform android-34) et `JAVA_HOME`
-(JDK 21). Les chemins par défaut de `build.ps1` sont ceux d'une installation Windows classique.
+Expected variables: `ANDROID_SDK` (build-tools 36.1 + platform android-34) and `JAVA_HOME`
+(JDK 21). The defaults in `build.ps1` match a usual Windows install.
 
-Pièges rencontrés :
+Traps met along the way:
 
-- **`d8` de build-tools 34.0.0 plante** avec les classes du JDK 21
-  (`NullPointerException … String.length()` sur `MethodParameters`). build-tools **36.1** corrige ça.
-- **`javac` 21 refuse `-bootclasspath`** : le script réessaie avec `-classpath` (le jar
-  `android-34-ext7` sert de référence).
-- **Les assets ne sont pas pris en compte** sans `aapt2 link -A assets`. Sans ça, l'APK se construit
-  mais la photo de fond manque.
-- **L'`android.jar` du SDK ne contient pas `ApplicationInfo.firstInstallTime`** (seul `PackageInfo`
-  l'a) : d'où la petite fonction `installedAt()`.
-- **La signature change tout** : réinstaller par-dessus une build signée avec une autre clé échoue
-  (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`). `install-tvhome.ps1` désinstalle donc l'ancien launcher —
-  ce qui efface ses préférences, et la rangée se reconstruit depuis `Apps.LIST` + les apps installées.
+- **`d8` from build-tools 34.0.0 crashes** on JDK 21 classes (`NullPointerException … String.length()`
+  on `MethodParameters`). Use **36.1**.
+- **`javac` 21 rejects `-bootclasspath`**: the script retries with `-classpath` (the `android-34-ext7`
+  jar is only a reference).
+- **Assets are ignored** without `aapt2 link -A assets`. Without it the APK builds, but the
+  backdrop is missing.
+- **The SDK's `android.jar` has no `ApplicationInfo.firstInstallTime`** (only `PackageInfo` does):
+  hence the small `installedAt()` helper.
+- **Signing is a one-way door**: reinstalling over a build signed with another key fails
+  (`INSTALL_FAILED_UPDATE_INCOMPATIBLE`). `install-tvhome.ps1` therefore uninstalls the old
+  launcher — which wipes its preferences, so the row rebuilds from `apps.txt` plus installed apps.
 
-## Installer
+## Installing
 
 ```powershell
-# installe, remet la rangée à zéro et fait de tvhome l'accueil
-powershell -ExecutionPolicy Bypass -File launcher\install-tvhome.ps1 -Ip 192.168.1.50
+# install, reset the row, make tvhome the home app
+powershell -ExecutionPolicy Bypass -File launcher\install-tvhome.ps1 -Ip <TV_IP>
 
-# ou seulement remettre l'accueil par défaut
-powershell -ExecutionPolicy Bypass -File launcher\set-default-home.ps1 -Ip 192.168.1.50
+# or just set the home app
+powershell -ExecutionPolicy Bypass -File launcher\set-default-home.ps1 -Ip <TV_IP>
 ```
 
-`set-default-home.ps1` pose le rôle HOME d'Android 11
-(`cmd role add-role-holder android.app.role.HOME`), l'ancienne préférence
-(`cmd package set-home-activity`) puis vérifie avec `resolve-activity`.
+`set-default-home.ps1` sets the Android 11 HOME role
+(`cmd role add-role-holder android.app.role.HOME`), the older preference
+(`cmd package set-home-activity`), then checks with `resolve-activity`.
 
-## Changer la rangée sans réinstaller
+## Changing the row without reinstalling
 
 ```bash
-adb shell am start -n com.ansub.tvhome/.MainActivity --es stamp <epoch> --es apps "fr.tf1.mytf1,com.teamsmart.videomanager.tv,com.nuvio.tv"
-adb shell am start -n com.ansub.tvhome/.MainActivity --es stamp <epoch> --es apps auto   # repartir des apps installées
+adb shell am start -n com.ansub.tvhome/.MainActivity --es stamp <epoch> --es apps "pkg1,pkg2,pkg3"
+adb shell am start -n com.ansub.tvhome/.MainActivity --es stamp <epoch> --es apps auto   # rebuild from installed apps
 ```
 
-`--es stamp` empêche Android de rejouer un vieil intent quand il relance l'accueil en arrière-plan.
+`--es stamp` stops Android from replaying an old intent when it restarts the home screen in the
+background.
 
-## La photo de fond
+## The wallpaper
 
-`launcher/assets/wallpaper.jpg` — 1280 × 720, ~63 Ko, décodée en RGB_565 (1,8 Mo en mémoire).
-Si l'asset est absent ou illisible, l'écran retombe sur un dégradé : pas d'écran noir.
+`launcher/assets/wallpaper.jpg` — 1280 × 720, ~63 KB, decoded as RGB_565 (1.8 MB in memory). If
+the asset is missing or unreadable, the screen falls back to a gradient.
 
-Crédit : « Nautical twilight sunset over Sandy Lake » par Trougnouf, CC BY 4.0,
+Credit: "Nautical twilight sunset over Sandy Lake" by Trougnouf, CC BY 4.0,
 [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Nautical_twilight_sunset_over_Sandy_Lake_(DSCF3005).jpg).

@@ -1,54 +1,55 @@
-# 4. Prendre un launcher existant (UnitedU)
+# 4. Taking an existing launcher (UnitedU)
 
-## Pourquoi
+**English** · [Français](fr/04-unitedu.md)
 
-Le launcher maison faisait exactement ce qui était demandé, mais la maquette voulue ressemblait
-davantage à [UnitedU](https://github.com/GordonWang1878/UnitedU-launcher) : des cartes d'apps
-compactes sur une rangée, trois boutons discrets en haut à gauche, l'heure en haut à droite, une
-barre d'accueil discrète. UnitedU étant open source (Apache-2.0), il vaut mieux l'installer que
-de recopier son interface.
+## Why
 
-## Ce qui a été fait
+The home-built launcher did exactly what was asked, but the wanted layout looked more like
+[UnitedU](https://github.com/GordonWang1878/UnitedU-launcher): compact app cards on one row, three
+discreet buttons top-left, the clock top-right, a quiet bottom bar. UnitedU is open source
+(Apache-2.0), so installing it beats reimplementing it.
+
+The same recipe works for any launcher you pick from [`05-launchers.md`](05-launchers.md).
+
+## What was done
 
 ```bash
 adb install -r unitedu-1.2.0.apk
-# premier démarrage : langue (English — l'app n'existe qu'en anglais et chinois),
-# puis deux étapes « Continue » / « Done »
+# first run: language (English only, plus Chinese), then "Continue" / "Done"
 
 adb shell cmd package set-home-activity --user 0 com.uniteduone.launcher/.MainActivity
 adb shell cmd role add-role-holder --user 0 android.app.role.HOME com.uniteduone.launcher
 ```
 
-Puis, dans **Edit Home Screen**, trois apps ajoutées à la première rangée : TF1+, SmartTube, Nuvio.
+Then, in **Edit Home Screen**, three apps were added to the first row.
 
-Vérifications :
+Checks:
 
-| Test | Résultat |
+| Test | Result |
 |---|---|
-| `resolve-activity` pour HOME | `com.uniteduone.launcher/.MainActivity`, `isDefault=true` |
-| Touche HOME | UnitedU |
-| Chromecast | `8009` en écoute, `mediashell` + `gms` actifs |
-| RAM du launcher | PSS ≈ 112 Mo (contre ≈ 35 Mo pour tvhome) |
+| `resolve-activity` for HOME | `com.uniteduone.launcher/.MainActivity`, `isDefault=true` |
+| HOME key | lands on UnitedU |
+| Chromecast | `8009` listening, `mediashell` + `gms` alive |
+| Launcher memory | PSS ≈ 112 MB (≈ 35 MB for tvhome) |
 
-## Ce qu'il faut savoir
+## Things to know
 
-- **Pas de français.** UnitedU est en anglais et chinois. L'interface de la télé, elle, reste en
-  français (la date suit le système, mais le format dépend de l'app).
-- **C'est plus lourd.** Sur une télé à 1 Go de RAM, 112 Mo de PSS n'est pas neutre. Si la télé
-  devient lente ou si Cast décroche, revenir à tvhome est immédiat :
+- **No French.** UnitedU is English and Chinese only; the TV itself stays in its own language.
+- **It is heavier.** On a 1 GB TV, 112 MB of PSS is not free. If the TV gets slow or Cast starts
+  dropping, switching back is immediate:
 
   ```bash
   adb shell cmd package set-home-activity --user 0 com.ansub.tvhome/.MainActivity
   ```
 
-  Les deux launchers restent installés : rien n'est à réinstaller pour basculer.
-- **Rien de système n'a été désactivé pour ça.** UnitedU passe par le rôle HOME d'Android 11,
-  donc pas besoin de geler un launcher constructeur.
-- **Sa bibliothèque locale** (Settings → General → Library) permet d'envoyer un APK, une photo
-  ou une vidéo depuis un téléphone, sans câble : le serveur ne tourne que tant que la page est
-  ouverte, sans mot de passe (réseau local uniquement).
+  Both launchers stay installed: nothing to reinstall to switch.
+- **No system app had to be frozen.** UnitedU takes the Android 11 HOME role, so the stock
+  launcher does not need to be disabled.
+- **Its local Library** (Settings → General → Library) lets you send an APK, a photo or a video
+  from a phone, no cable: the server only runs while that page is open, with no password (LAN
+  only).
 
-## Détail amusant
+## Anecdote
 
-Le README de UnitedU classe « TCL / FFALCON » en *won't install* pour certains modèles chinois.
-Sur la TV de test (TCL C06, Google TV, Android 11), l'APK s'installe et prend le rôle HOME sans problème.
+UnitedU's README lists "TCL / FFALCON" as *won't install* for some Chinese models. On the C06 used
+here (Google TV, Android 11), the APK installs and takes the HOME role without trouble.
