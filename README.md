@@ -103,6 +103,13 @@ powershell -ExecutionPolicy Bypass -File launcher\install-tvhome.ps1 -Ip 192.168
 Remplace `192.168.1.50` par l'adresse de ta télé. Tous les scripts prennent `-Ip` ; les adresses
 du réseau d'origine ne sont pas dans ce dépôt.
 
+## Refaites-le avec une IA
+
+[`PROMPT.md`](PROMPT.md) contient le prompt à coller dans OpenCode, Claude Code, Codex ou
+n'importe quel agent avec accès au shell : découverte de la TV, liste de paquets proposée puis
+validée, désactivation par lots avec vérification de Chromecast, installation de l'accueil, et
+compte rendu avant/après. Rien n'est destructif sans accord, rien n'est affirmé sans commande.
+
 ## Règles de sécurité appliquées
 
 - **Désactiver, jamais désinstaller.** `pm disable-user` se défait avec `pm enable` ; une
