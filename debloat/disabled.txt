@@ -1,0 +1,7 @@
+# Snapshot of the packages disabled on this TV - generated, not hand-written.
+#
+#   powershell -ExecutionPolicy Bypass -File debloat\export.ps1 -Ip <tv-address>
+#
+# The file is empty until that command has run on the TV it belongs to: the list is tied to one
+# firmware and one owner's habits, so shipping a fixed list as "the right one" would be wrong.
+# `disabled-candidates.txt` holds the packages that were confirmed safe on the C06.
