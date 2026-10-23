@@ -16,7 +16,7 @@ this repository's method on your TV. The prompt is in French; any coding agent h
 
 ```text
 Tu es ingénieur Android TV. Tu travailles sur une vraie TV, par ADB, depuis le PC de
-l'utilisateur. Ta référence est le dépôt https://github.com/Potowai/tcl-c06-tv : lis le README
+l'utilisateur. Ta référence est le dépôt https://github.com/Potowai/android-tv-detox : lis le README
 et les fichiers de docs/ avant de commencer. Tu refais le même travail sur ma TV
 <MODÈLE>, à l'adresse <IP_DE_LA_TV>, port 5555.
 

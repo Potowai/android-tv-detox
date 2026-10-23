@@ -1,4 +1,4 @@
-# 2. Le launcher tvhome
+# 2. Un écran d'accueil maison (tvhome)
 
 `com.ansub.tvhome` est un launcher Android TV minimal, dérivé de
 [Ansub/tv-detox](https://github.com/Ansub/tv-detox) (MIT). Le code d'origine affichait six apps

@@ -1,4 +1,4 @@
-# 3. Le réseau : la télé qui disparaît, et la passerelle au mauvais endroit
+# 3. Réseau : la TV a une IP mais ne répond pas
 
 Deux problèmes différents se sont succédé. Ils se ressemblent — « la télé a une IP mais on ne
 l'atteint pas » — mais n'ont pas la même cause.
@@ -10,7 +10,7 @@ Symptômes, mesurés depuis le PC :
 | Test | Résultat |
 |---|---|
 | Ping `192.168.1.20` (l'IP affichée par la télé) | aucune réponse |
-| ARP pour la MAC `38:e7:c0:…` | aucune entrée |
+| ARP pour la MAC `<MAC de la TV>` | aucune entrée |
 | TCP `5555`, `8009`, `6466` sur les 254 adresses | seulement le Fire Stick |
 | mDNS (`_googlecast`, `_androidtvremote2`) | silence |
 | SSDP `M-SEARCH` | silence |

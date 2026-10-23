@@ -1,50 +1,69 @@
-# TCL C06 — débloat, écran d'accueil et réseau
+# Android TV — débloat, accueil et réseau
 
-Tout ce qui a été fait sur une **TCL C06** sous Google TV (Android 11), pour en faire une
-télé propre : plus d'apps inutiles, un écran d'accueil qui montre seulement TF1+, SmartTube et
-Nuvio, et Chromecast qui continue de fonctionner.
+Une méthode reproductible pour nettoyer **n'importe quelle Android TV / Google TV**, lui donner un
+écran d'accueil minimal, et garder Chromecast qui fonctionne.
 
-Ce dépôt n'est pas un produit : c'est le dossier de la manip, avec le code, les scripts et les
-pièges rencontrés.
+Pas de magie, pas d'APK miracle : des règles, des commandes `adb` vérifiables, et les pièges
+rencontrés en vrai. Le dossier a été écrit sur une TCL C06 (Android 11) et tout ce qui dépend du
+modèle est signalé comme tel.
 
-## La télé
+## Ce qu'il y a ici
 
-| | |
+| Dossier | Contenu |
 |---|---|
-| Modèle | TCL C06 (Google TV, Android 11 / API 30) |
-| Écran | 1280 × 720, interface en français |
-| RAM | 939 Mo (917 Mo visibles) |
-| CPU | armeabi-v7a uniquement (pas d'arm64) |
-| Réseau | Wi-Fi 2,4 GHz, ADB sur le port 5555 |
+| [`docs/01-debloat.md`](docs/01-debloat.md) | désactiver sans casser : catégories, `PERSISTENT`, listes de retour |
+| [`docs/02-launcher.md`](docs/02-launcher.md) | un accueil maison (source, build sans Gradle, installation) |
+| [`docs/03-network.md`](docs/03-network.md) | la TV injoignable, la passerelle au mauvais endroit, Chromecast |
+| [`docs/04-unitedu.md`](docs/04-unitedu.md) | prendre un launcher existant et le mettre en HOME |
+| [`docs/05-launchers.md`](docs/05-launchers.md) | cinq accueils open source comparés (licence, minSdk, ABI) |
+| [`docs/06-case-study.md`](docs/06-case-study.md) | le dossier complet sur une TCL C06, chiffres à l'appui |
+| [`apks/`](apks/) | les APK officiels des launchers comparés, avec SHA-256 |
+| [`debloat/`](debloat/) | scripts d'export, de désactivation et de retour arrière |
+| [`launcher/`](launcher/) | le launcher complet : Java, assets, build, installation |
+| [`PROMPT.md`](PROMPT.md) | le prompt à donner à un agent (OpenCode, Claude Code, Codex…) |
 
-## Les trois chantiers
+## Ça marche sur quoi
 
-1. **Débloat** — 47 paquets désactivés (jamais désinstallés) et 2 apps PERSISTENT suspendues.
-   Chromecast, TF1+, SmartTube et l'accueil sont restés intacts. Voir [`docs/01-debloat.md`](docs/01-debloat.md).
-2. **Écran d'accueil** — un launcher maison, `com.ansub.tvhome`, dérivé de
-   [Ansub/tv-detox](https://github.com/Ansub/tv-detox) : trois cartes d'apps, une barre unique en bas,
-   un fond photo, et une rangée qui se met à jour toute seule quand une app est installée.
-   Le fork avec les sources et l'APK : [Potowai/tv-detox](https://github.com/Potowai/tv-detox/releases/latest).
-   Voir [`docs/02-launcher.md`](docs/02-launcher.md).
-3. **Réseau** — la télé qui disparaît du LAN, l'IP statique, la passerelle au mauvais endroit, et
-   Chromecast qui n'était pas en cause. Voir [`docs/03-network.md`](docs/03-network.md).
+- **Android 9 (API 28) et plus** pour le rôle HOME moderne (`cmd role add-role-holder`) ;
+  `pm disable-user` fonctionne depuis bien plus longtemps.
+- **Google TV et Android TV** classiques. **Fire OS** est à part : les commandes `pm` passent,
+  mais l'accueil n'est pas remplaçable sans root.
+- Certaines ROM constructeur **refusent les launchers tiers** (TCL/FFALCON selon les modèles,
+  Xiaomi récents, Skyworth) : la méthode de débloat s'applique quand même, pas le remplacement
+  d'accueil.
+- Vérifier avant d'installer un APK : `minSdkVersion` et ABI (`aapt2 dump badging`). Beaucoup de
+  TV modestes sont **armeabi-v7a uniquement** — un APK arm64 ne s'installe pas.
 
-Ensuite, l'accueil par défaut est passé à **[UnitedU](https://github.com/GordonWang1878/UnitedU-launcher)**
-(open source, Apache-2.0), qui ressemble plus à ce qui était voulu. Voir [`docs/04-unitedu.md`](docs/04-unitedu.md).
+## La méthode en quatre étapes
 
-## Les cinq launchers comparés
+1. **Découvrir et sauver** : modèle, SDK, RAM, apps installées, accueil actuel, port Cast 8009,
+   liste des paquets désactivés. Tout ce qui n'est pas noté ne pourra pas être annulé.
+2. **Désactiver par petites vagues**, jamais désinstaller, jamais toucher aux `PERSISTENT`, et
+   vérifier après chaque vague que Chromecast et l'accueil répondent encore.
+3. **Choisir un accueil** : celui du dépôt, ou un open source du comparatif ; le poser via le
+   rôle HOME et vérifier que la touche HOME y arrive vraiment.
+4. **Diagnostiquer le réseau** si la TV « a une IP mais ne répond pas » : ARP, route par défaut,
+   passerelle. Un affichage d'IP ne prouve rien.
 
-Quatre APK officiels prêts à installer et un projet qui refuse de s'installer sur Android 11, avec
-captures, licences et empreintes SHA-256 : [`docs/05-launchers.md`](docs/05-launchers.md),
+## Le dossier complet sur une TCL C06
+
+47 paquets désactivés, 2 `PERSISTENT` suspendus, un launcher maison puis UnitedU en accueil, et
+deux pannes réseau élucidées — chiffres, commandes et captures dans
+[`docs/06-case-study.md`](docs/06-case-study.md).
+
+## Les cinq accueils comparés
+
+Quatre APK officiels prêts à installer et un projet qui refuse de s'installer sous Android 11,
+avec captures, licences et empreintes SHA-256 : [`docs/05-launchers.md`](docs/05-launchers.md),
 binaires dans [`apks/`](apks/).
 
-| Launcher | Licence | minSdk | Sur la C06 |
+| Launcher | Licence | minSdk | Android 11 |
 |---|---|---|---|
 | GlassOS | GPL-3.0 | 22 | ✅ |
 | Couchy | GPL-3.0 | 21 | ✅ |
 | tv-launcher (zhengnanli) | MIT | 31 | ❌ Android 12+ |
 | LTvLauncher | GPL-3.0 | 21 | ✅ |
-| UnitedU | Apache-2.0 | 28 | ✅ installé |
+| UnitedU | Apache-2.0 | 28 | ✅ |
 
 ### Captures
 
@@ -58,25 +77,10 @@ binaires dans [`apks/`](apks/).
 <td align="center"><img src="docs/img/launchers/ltv-home.png" width="330"><br><sub><b>LTvLauncher</b> — catégories et widgets</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="docs/img/launchers/unitedu-c06.png" width="330"><br><sub><b>UnitedU</b> — capture réelle de la C06, installé aujourd'hui</sub></td>
+<td align="center"><img src="docs/img/launchers/unitedu-real.png" width="330"><br><sub><b>UnitedU</b> — capture réelle sur la TV de test</sub></td>
 <td align="center"><img src="docs/img/launchers/glass-control.png" width="330"><br><sub>GlassOS, centre de contrôle</sub></td>
 </tr>
 </table>
-
-D'autres captures (réglages, grille, sélection) sont dans
-[`docs/img/launchers/`](docs/img/launchers) et présentées dans
-[`docs/05-launchers.md`](docs/05-launchers.md).
-
-## État final
-
-| | |
-|---|---|
-| Accueil par défaut | `com.uniteduone.launcher/.MainActivity` (UnitedU 1.2.0) |
-| Ancien accueil | `com.ansub.tvhome` toujours installé, inactif (retour possible en une commande) |
-| Apps désactivées | 47 |
-| Apps PERSISTENT suspendues | 2 (`com.tcl.factory.view`, `com.tcl.system.server`) |
-| Chromecast | `8009` en écoute, `mediashell` + `gms` actifs |
-| APK qui traînaient | 0 (stockage nettoyé) |
 
 ## Arborescence
 
@@ -91,24 +95,16 @@ docs/       ce qui a été fait, et pourquoi
 
 ```powershell
 # 1. Sauver l'état actuel de la télé
-powershell -ExecutionPolicy Bypass -File debloat\export.ps1 -Ip 192.168.1.50
+powershell -ExecutionPolicy Bypass -File debloat\export.ps1 -Ip <IP_DE_LA_TV>
 
 # 2. Construire le launcher (JDK 21 + build-tools 36.1 + android-34)
 powershell -ExecutionPolicy Bypass -File launcher\build.ps1
 
 # 3. L'installer et en faire l'accueil par défaut
-powershell -ExecutionPolicy Bypass -File launcher\install-tvhome.ps1 -Ip 192.168.1.50
+powershell -ExecutionPolicy Bypass -File launcher\install-tvhome.ps1 -Ip <IP_DE_LA_TV>
 ```
 
-Remplace `192.168.1.50` par l'adresse de ta télé. Tous les scripts prennent `-Ip` ; les adresses
-du réseau d'origine ne sont pas dans ce dépôt.
-
-## Refaites-le avec une IA
-
-[`PROMPT.md`](PROMPT.md) contient le prompt à coller dans OpenCode, Claude Code, Codex ou
-n'importe quel agent avec accès au shell : découverte de la TV, liste de paquets proposée puis
-validée, désactivation par lots avec vérification de Chromecast, installation de l'accueil, et
-compte rendu avant/après. Rien n'est destructif sans accord, rien n'est affirmé sans commande.
+Tous les scripts prennent `-Ip` ; aucune adresse d'un réseau réel n'est dans ce dépôt.
 
 ## Règles de sécurité appliquées
 
@@ -117,13 +113,21 @@ compte rendu avant/après. Rien n'est destructif sans accord, rien n'est affirm�
 - **Jamais toucher aux paquets `PERSISTENT`** (ils se relancent au boot et une désactivation
   laisse la télé dans un état bizarre). Les deux concernés ont été *suspendus*, pas désactivés,
   et le flag ne survit pas à un redémarrage — c'est volontaire.
-- **Garder une liste de retour** (`/data/local/tmp/tvhome-disabled.txt`) avant toute action,
-  et la relire après un reboot pour vérifier qu'elle est complète.
+- **Garder une liste de retour** avant toute action, et la relire après un reboot.
 - **Vérifier Chromecast après chaque vague** : port `8009` en écoute, `mediashell` et `gms` vivants.
+
+## Refaites-le avec une IA
+
+[`PROMPT.md`](PROMPT.md) contient le prompt à coller dans OpenCode, Claude Code, Codex ou
+n'importe quel agent avec accès au shell : découverte de la TV, liste de paquets proposée puis
+validée, désactivation par lots avec vérification de Chromecast, installation de l'accueil, et
+compte rendu avant/après. Rien n'est destructif sans accord, rien n'est affirmé sans commande.
 
 ## Crédits
 
 - Launcher d'origine : [Ansub/tv-detox](https://github.com/Ansub/tv-detox), MIT.
+  Notre fork avec l'APK : [Potowai/tv-detox](https://github.com/Potowai/tv-detox/releases/latest).
 - UnitedU : [GordonWang1878/UnitedU-launcher](https://github.com/GordonWang1878/UnitedU-launcher), Apache-2.0.
+- GlassOS, Couchy, LTvLauncher, tv-launcher : voir [`apks/README.md`](apks/README.md).
 - Fond d'écran : « Nautical twilight sunset over Sandy Lake » par **Trougnouf**, CC BY 4.0,
   [Wikimedia Commons](https://commons.wikimedia.org/wiki/File:Nautical_twilight_sunset_over_Sandy_Lake_(DSCF3005).jpg).

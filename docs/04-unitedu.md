@@ -1,4 +1,4 @@
-# 4. UnitedU comme accueil final
+# 4. Prendre un launcher existant (UnitedU)
 
 ## Pourquoi
 
@@ -51,4 +51,4 @@ Vérifications :
 ## Détail amusant
 
 Le README de UnitedU classe « TCL / FFALCON » en *won't install* pour certains modèles chinois.
-Sur cette C06 (Google TV, Android 11), l'APK s'installe et prend le rôle HOME sans problème.
+Sur la TV de test (TCL C06, Google TV, Android 11), l'APK s'installe et prend le rôle HOME sans problème.

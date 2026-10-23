@@ -1,10 +1,10 @@
-# 1. Débloat : 47 paquets désactivés, 2 suspendus
+# 1. Débloater une Android TV
 
 ## Objectif
 
-Une télé qui ne garde que ce qui sert : regarder TF1+, SmartTube, Nuvio, et caster depuis un
-téléphone. Tout le reste (recommandations, journaux, assistants, doubles stores, tuner TCL,
-mise en veille publicitaire…) disparaît de l'écran d'accueil et du tiroir d'apps.
+L'objectif n'est pas une liste de paquets universelle — elle n'existe pas — mais une méthode :
+retirer ce qui ne sert à personne (recommandations, assistants, doubles stores, journaux,
+mise en veille publicitaire) sans toucher à ce qui fait fonctionner la télé.
 
 ## Règle de base : désactiver, jamais désinstaller
 
@@ -19,7 +19,7 @@ commande. Une app système désinstallée, elle, ne revient que si on retrouve s
 Avant chaque vague, la liste est écrite sur la télé :
 
 ```bash
-adb shell "pm list packages -d" | sed 's/package://' > /data/local/tmp/tvhome-disabled.txt
+adb shell "pm list packages -d" | sed 's/package://' > /data/local/tmp/disabled.txt
 ```
 
 Après un redémarrage on relit cette liste et on compare : c'est ce qui a permis de repérer que
