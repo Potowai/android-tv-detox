@@ -24,6 +24,7 @@ pièges rencontrés.
 2. **Écran d'accueil** — un launcher maison, `com.ansub.tvhome`, dérivé de
    [Ansub/tv-detox](https://github.com/Ansub/tv-detox) : trois cartes d'apps, une barre unique en bas,
    un fond photo, et une rangée qui se met à jour toute seule quand une app est installée.
+   Le fork avec les sources et l'APK : [Potowai/tv-detox](https://github.com/Potowai/tv-detox/releases/latest).
    Voir [`docs/02-launcher.md`](docs/02-launcher.md).
 3. **Réseau** — la télé qui disparaît du LAN, l'IP statique, la passerelle au mauvais endroit, et
    Chromecast qui n'était pas en cause. Voir [`docs/03-network.md`](docs/03-network.md).
