@@ -1,6 +1,8 @@
 # build output
 launcher/out/
 *.apk
+# the official launcher builds are the point of apks/
+!apks/*.apk
 # signing key: never in a repo
 *.jks
 *.keystore
