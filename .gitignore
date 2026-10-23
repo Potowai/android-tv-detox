@@ -1,0 +1,11 @@
+# build output
+launcher/out/
+*.apk
+# signing key: never in a repo
+*.jks
+*.keystore
+# runtime logs
+*.log
+# windows noise
+Thumbs.db
+desktop.ini

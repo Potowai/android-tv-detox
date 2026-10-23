@@ -1,0 +1,23 @@
+# Packages to disable on a TCL C06, one per line. Lines starting with # are ignored.
+#
+# This is a starter list, not the full 47 of the original machine: the exact set depends on the
+# firmware and on what the owner actually uses. The full list from that TV is produced by
+# export.ps1 (it reads `pm list packages -d`) and belongs in disabled.txt.
+#
+# The seven below are the ones that were confirmed safe on the C06 in October 2026: none of them
+# is PERSISTENT, none is needed by Chromecast, the remote, HDMI or the home screen.
+
+# TCL's store / VOD shelf
+tv.wuaki.apptv
+# Google TV's setup helper, still running after setup
+com.google.android.tungsten.setupwraith
+# TCL first-run wizard
+com.tcl.initsetup
+# Microphone/LED helper, useless without the voice remote
+com.tcl.micmanager
+# "Smart connect" phone pairing that never worked
+com.google.android.apps.nbu.smartconnect.tv
+# The stock ringtone picker
+com.android.soundpicker
+# Google's TV auth bridge, only used by the stock launcher
+com.google.android.sss.authbridge
